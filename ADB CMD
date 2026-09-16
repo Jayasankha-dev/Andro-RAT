@@ -27,3 +27,5 @@ adb shell dumpsys deviceidle whitelist +com.thunderx.telegramagent
 
 
 
+adb shell am force-stop com.thunderx.telegramagent
+adb shell monkey -p com.thunderx.telegramagent -c android.intent.category.LAUNCHER 1
