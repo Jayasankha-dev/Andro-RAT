@@ -1,65 +1,83 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
 set PKG=com.thunderx.telegramagent
 
-echo === AppOps ===
-for %%O in (
-  PROJECT_MEDIA READ_CLIPBOARD WRITE_CLIPBOARD LEGACY_STORAGE
-  READ_EXTERNAL_STORAGE WRITE_EXTERNAL_STORAGE
-  READ_MEDIA_IMAGES READ_MEDIA_VIDEO READ_MEDIA_AUDIO
-  CAMERA RECORD_AUDIO
-  COARSE_LOCATION FINE_LOCATION
-  READ_CONTACTS WRITE_CONTACTS READ_CALL_LOG WRITE_CALL_LOG
-  CALL_PHONE READ_SMS SEND_SMS RECEIVE_SMS
-  READ_CALENDAR WRITE_CALENDAR
-  BODY_SENSORS ACTIVITY_RECOGNITION
-  SYSTEM_ALERT_WINDOW REQUEST_INSTALL_PACKAGES
-  GET_USAGE_STATS WRITE_SETTINGS
-  ANSWER_PHONE_CALLS READ_PHONE_STATE READ_PHONE_NUMBERS
-  BLUETOOTH_SCAN VIBRATE WAKE_LOCK START_FOREGROUND
-  TOAST_WINDOW ACCESS_ACCESSIBILITY BIND_ACCESSIBILITY_SERVICE
-) do (
-  echo   !PKG! <- %%O
-  adb shell appops set !PKG! %%O allow 2>nul
-)
+echo ============================================
+echo   Granting ALL permissions to %PKG%
+echo ============================================
 
-echo === Runtime permissions ===
+echo.
+echo [1/4] Runtime permissions...
 for %%P in (
-  android.permission.CAMERA
-  android.permission.RECORD_AUDIO
+  android.permission.READ_CONTACTS android.permission.WRITE_CONTACTS
+  android.permission.READ_CALL_LOG android.permission.WRITE_CALL_LOG
+  android.permission.CALL_PHONE android.permission.READ_PHONE_STATE
+  android.permission.READ_PHONE_NUMBERS android.permission.ANSWER_PHONE_CALLS
+  android.permission.READ_SMS android.permission.SEND_SMS
+  android.permission.RECEIVE_SMS
+  android.permission.READ_CALENDAR android.permission.WRITE_CALENDAR
+  android.permission.CAMERA android.permission.RECORD_AUDIO
+  android.permission.BODY_SENSORS android.permission.ACTIVITY_RECOGNITION
+  android.permission.ACCESS_FINE_LOCATION
+  android.permission.ACCESS_COARSE_LOCATION
+  android.permission.ACCESS_BACKGROUND_LOCATION
   android.permission.READ_EXTERNAL_STORAGE
   android.permission.WRITE_EXTERNAL_STORAGE
   android.permission.READ_MEDIA_IMAGES
   android.permission.READ_MEDIA_VIDEO
   android.permission.READ_MEDIA_AUDIO
-  android.permission.ACCESS_FINE_LOCATION
-  android.permission.ACCESS_COARSE_LOCATION
-  android.permission.ACCESS_BACKGROUND_LOCATION
+  android.permission.READ_MEDIA_VISUAL_USER_SELECTED
   android.permission.POST_NOTIFICATIONS
-  android.permission.READ_CONTACTS
-  android.permission.WRITE_CONTACTS
-  android.permission.READ_CALL_LOG
-  android.permission.WRITE_CALL_LOG
-  android.permission.CALL_PHONE
-  android.permission.READ_SMS
-  android.permission.SEND_SMS
-  android.permission.RECEIVE_SMS
-  android.permission.READ_CALENDAR
-  android.permission.WRITE_CALENDAR
-  android.permission.BODY_SENSORS
-  android.permission.ACTIVITY_RECOGNITION
-  android.permission.READ_PHONE_STATE
-  android.permission.READ_PHONE_NUMBERS
-  android.permission.ANSWER_PHONE_CALLS
   android.permission.BLUETOOTH_CONNECT
   android.permission.BLUETOOTH_SCAN
   android.permission.BLUETOOTH_ADVERTISE
   android.permission.NEARBY_WIFI_DEVICES
+  android.permission.SCHEDULE_EXACT_ALARM
+  android.permission.USE_EXACT_ALARM
   android.permission.GET_ACCOUNTS
 ) do (
-  adb shell pm grant !PKG! %%P 2>nul
+  adb shell pm grant %PKG% %%P 2>nul
 )
 
-echo === Done ===
+echo.
+echo [2/4] AppOps...
+for %%O in (
+  PROJECT_MEDIA READ_CLIPBOARD WRITE_CLIPBOARD LEGACY_STORAGE
+  READ_EXTERNAL_STORAGE WRITE_EXTERNAL_STORAGE
+  READ_MEDIA_IMAGES READ_MEDIA_VIDEO READ_MEDIA_AUDIO
+  READ_MEDIA_VISUAL_USER_SELECTED
+  CAMERA RECORD_AUDIO
+  FINE_LOCATION COARSE_LOCATION MONITOR_LOCATION MONITOR_HIGH_POWER_LOCATION
+  READ_CONTACTS WRITE_CONTACTS READ_CALL_LOG WRITE_CALL_LOG CALL_PHONE
+  READ_SMS SEND_SMS RECEIVE_SMS
+  READ_CALENDAR WRITE_CALENDAR
+  BODY_SENSORS ACTIVITY_RECOGNITION
+  READ_PHONE_STATE READ_PHONE_NUMBERS ANSWER_PHONE_CALLS
+  SYSTEM_ALERT_WINDOW REQUEST_INSTALL_PACKAGES
+  GET_USAGE_STATS WRITE_SETTINGS
+  VIBRATE WAKE_LOCK START_FOREGROUND
+  RUN_IN_BACKGROUND RUN_ANY_IN_BACKGROUND
+  TOAST_WINDOW ACCESS_ACCESSIBILITY BIND_ACCESSIBILITY_SERVICE
+  BLUETOOTH_CHANGE WIFI_CHANGE NFC_CHANGE
+  TAKE_AUDIO_FOCUS AUDIO_MEDIA_VOLUME
+  BOOT_COMPLETED READ_DEVICE_IDENTIFIERS
+  USE_FULL_SCREEN_INTENT TURN_SCREEN_ON
+  MANAGE_EXTERNAL_STORAGE
+) do (
+  adb shell appops set %PKG% %%O allow 2>nul
+)
+
+echo.
+echo [3/4] Battery optimization whitelist...
+adb shell dumpsys deviceidle whitelist +%PKG% >nul 2>&1
+
+echo.
+echo [4/4] Verify:
 adb shell appops get %PKG%
+
+echo.
+echo ============================================
+echo   DONE! Restart the app now.
+echo ============================================
+pause
 endlocal
