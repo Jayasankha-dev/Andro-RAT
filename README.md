@@ -136,6 +136,7 @@ adb shell pm grant com.thunderx.telegramagent android.permission.POST_NOTIFICATI
 Clone the repository:
 
 git clone https://github.com/Jayasankha-dev/Andro-RAT/tree/main
+
 cd Andro-RAT
 
 Create local.properties in the project root:
