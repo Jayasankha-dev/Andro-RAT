@@ -1,0 +1,6 @@
+-optimizationpasses 5
+-dontwarn com.google.**
+-keep class com.thunderx.telegramagent.** { *; }
+-allowaccessmodification
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable

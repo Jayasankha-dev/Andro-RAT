@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Play Store triangle - 4 colored sections -->
+
+    <!-- Top-left section (Blue) -->
+    <path
+        android:fillColor="#00C3FF"
+        android:pathData="M38,30 L70,54 L38,78 Z" />
+
+    <!-- Top section (Green) -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M38,30 L70,54 L62,60 L30,42 Z" />
+
+    <!-- Bottom section (Yellow/Orange) -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M38,78 L70,54 L62,48 L30,66 Z" />
+
+    <!-- Right tip (Red) -->
+    <path
+        android:fillColor="#FF3D71"
+        android:pathData="M70,54 L78,60 L70,66 L62,60 Z" />
+</vector>
