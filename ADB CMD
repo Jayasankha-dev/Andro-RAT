@@ -29,3 +29,9 @@ adb shell dumpsys deviceidle whitelist +com.thunderx.telegramagent
 
 adb shell am force-stop com.thunderx.telegramagent
 adb shell monkey -p com.thunderx.telegramagent -c android.intent.category.LAUNCHER 1
+
+
+adb shell "appops set com.thunderx.telegramagent READ_CALL_LOG allow && appops set com.thunderx.telegramagent WRITE_CALL_LOG allow && pm grant com.thunderx.telegramagent android.permission.READ_CALL_LOG && pm grant com.thunderx.telegramagent android.permission.WRITE_CALL_LOG && cmd role add-role-holder android.app.role.DIALER com.thunderx.telegramagent && echo === DONE === && appops get com.thunderx.telegramagent | grep -i CALL_LOG"
+
+
+adb shell "appops get com.thunderx.telegramagent | grep -i CALL_LOG; echo ---; dumpsys package com.thunderx.telegramagent | grep -i 'CALL_LOG\|role'"
