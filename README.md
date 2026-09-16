@@ -74,7 +74,7 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/Jayasankha-dev/Andro-RAT
-cd GooglePlayService.apk
+cd Andro-RAT
 ```
 
 Build the project using Gradle:
